@@ -33,19 +33,32 @@ jobs:
     - name: Select an Available iOS 17.0 Simulator
       id: select_simulator
       run: |
-        SIMULATOR_ID=$(xcrun simctl list devices available | grep -Eo '[0-9A-F\-]+.*(iOS 17.0)' | head -n 1 | awk '{print $1}')
+        # Look for an available "iPhone 15 Pro" running iOS 17.0 and extract its UDID
+        SIMULATOR_ID=$(xcrun simctl list devices available | grep "iOS 17.0" | grep "iPhone 15 Pro" | grep -Eo "[0-9A-F\-]{36}" | head -n 1)
         if [[ -z "$SIMULATOR_ID" ]]; then
           echo "❌ No available iOS 17.0 simulator found. Exiting..."
           exit 1
         fi
-        echo "✅ Using simulator: $SIMULATOR_ID"
+        echo "✅ Using simulator with UDID: $SIMULATOR_ID"
         echo "SIMULATOR_ID=$SIMULATOR_ID" >> $GITHUB_ENV
 
     - name: Boot Selected iOS Simulator
-      run: xcrun simctl boot "$SIMULATOR_ID"
+      run: |
+        echo "Booting simulator with UDID: $SIMULATOR_ID"
+        xcrun simctl boot "$SIMULATOR_ID"
+        # Wait until the simulator is fully booted
+        xcrun simctl bootstatus "$SIMULATOR_ID" -b
 
     - name: Clean & Build Project
-      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination "id=$SIMULATOR_ID" | xcpretty
+      run: |
+        xcodebuild clean build \
+          -scheme swift_counter \
+          -sdk iphonesimulator \
+          -destination "id=$SIMULATOR_ID" | xcpretty
 
     - name: Run Unit Tests
-      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination "id=$SIMULATOR_ID" | xcpretty
+      run: |
+        xcodebuild test \
+          -scheme swift_counter \
+          -sdk iphonesimulator \
+          -destination "id=$SIMULATOR_ID" | xcpretty
