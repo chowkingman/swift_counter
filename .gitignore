@@ -37,4 +37,13 @@ fastlane/test_output/
 secrets.json
 
 # Xcode Generated Logs
-*.xcdebugger/
+*.log
+
+# Ignore user-specific settings
+*.xcuserdatad/
+*.xcuserdata/
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.swo
