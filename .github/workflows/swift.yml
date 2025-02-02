@@ -16,7 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Set up Xcode
+      run: sudo xcode-select -s /Applications/Xcode_15.4.app
     - name: Build
-      run: xcodebuild -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=14.5' build
+      run: xcodebuild -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=17.5' build
     - name: Run tests
-      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=14.5'
+      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=17.5'
