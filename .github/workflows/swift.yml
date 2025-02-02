@@ -1,7 +1,6 @@
 # This workflow will build and test an iOS project using Xcode
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
 
-name: Swift
+name: Swift CI
 
 on:
   push:
@@ -12,13 +11,13 @@ on:
 jobs:
   build:
 
-    runs-on: macos-14
+    runs-on: macos-14  # Explicit macOS version for stability
 
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: List Installed Xcode Versions (Debugging)
+    - name: List Installed Xcode Versions
       run: ls /Applications | grep Xcode
 
     - name: Set Up Xcode 16.2
@@ -31,9 +30,15 @@ jobs:
 
     - name: Verify Xcode Version
       run: xcodebuild -version
-    
+
+    - name: List Available iOS Simulators
+      run: xcrun simctl list devices
+
+    - name: Boot iPhone 15 Pro Simulator (iOS 17.2)
+      run: xcrun simctl boot "iPhone 15 Pro"
+
     - name: Clean & Build Project
-      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5' | xcpretty
-    
+      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2' | xcpretty
+
     - name: Run Unit Tests
-      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5' | xcpretty
+      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2' | xcpretty
