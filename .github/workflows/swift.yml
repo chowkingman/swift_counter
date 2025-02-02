@@ -20,13 +20,13 @@ jobs:
 
     - name: List Installed Xcode Versions (Debugging)
       run: ls /Applications | grep Xcode
-      
-    - name: Set Up Xcode 15.4 (If Available)
+
+    - name: Set Up Xcode 16.2
       run: |
-        if [ -d "/Applications/Xcode_15.4.app" ]; then
-          sudo xcode-select -s /Applications/Xcode_15.4.app
+        if [ -d "/Applications/Xcode_16.2.app" ]; then
+          sudo xcode-select -s /Applications/Xcode_16.2.app
         else
-          echo "⚠️ Xcode 15.4 not found, using default version."
+          echo "⚠️ Xcode 16.2 not found, using default version."
         fi
 
     - name: Verify Xcode Version
