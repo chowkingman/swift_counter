@@ -33,9 +33,15 @@ jobs:
     - name: Select an Available iOS 17.0 Simulator
       id: select_simulator
       run: |
-        # Use awk to find the section for iOS 17.0 and then look for a line with "iPhone 15 Pro"
-        SIMULATOR_ID=$(xcrun simctl list devices | \
-          awk '/-- iOS 17.0 --/{flag=1; next} /^--/{flag=0} flag && /iPhone 15 Pro/ { match($0, /\(([0-9A-F\-]+)\)/, arr); print arr[1]; exit }')
+        SIMULATOR_ID=$(xcrun simctl list devices | awk '
+          /-- iOS 17\.0 --/ {flag=1; next} 
+          /^--/ {flag=0} 
+          flag && /iPhone 15 Pro/ {
+            sub(/.*\(/, ""); 
+            sub(/\).*/, ""); 
+            print; 
+            exit 
+          }')
         if [[ -z "$SIMULATOR_ID" ]]; then
           echo "❌ No available iOS 17.0 iPhone 15 Pro simulator found. Exiting..."
           exit 1
