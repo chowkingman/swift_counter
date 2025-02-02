@@ -33,10 +33,11 @@ jobs:
     - name: Select an Available iOS 17.0 Simulator
       id: select_simulator
       run: |
-        # Look for an available "iPhone 15 Pro" running iOS 17.0 and extract its UDID
-        SIMULATOR_ID=$(xcrun simctl list devices available | grep "iOS 17.0" | grep "iPhone 15 Pro" | grep -Eo "[0-9A-F\-]{36}" | head -n 1)
+        # Use awk to find the section for iOS 17.0 and then look for a line with "iPhone 15 Pro"
+        SIMULATOR_ID=$(xcrun simctl list devices | \
+          awk '/-- iOS 17.0 --/{flag=1; next} /^--/{flag=0} flag && /iPhone 15 Pro/ { match($0, /\(([0-9A-F\-]+)\)/, arr); print arr[1]; exit }')
         if [[ -z "$SIMULATOR_ID" ]]; then
-          echo "❌ No available iOS 17.0 simulator found. Exiting..."
+          echo "❌ No available iOS 17.0 iPhone 15 Pro simulator found. Exiting..."
           exit 1
         fi
         echo "✅ Using simulator with UDID: $SIMULATOR_ID"
