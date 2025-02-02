@@ -32,8 +32,15 @@ jobs:
     - name: Verify Xcode Version
       run: xcodebuild -version
 
+    - name: List Available iOS Simulators
+      run: xcrun simctl list devices
+
+    - name: Install iOS 17.2 Simulator (If Needed)
+      run: |
+        xcodebuild -downloadAllPlatforms || echo "Skipping, already installed"
+
     - name: Clean & Build Project
-      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=17.5' | xcpretty
+      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14,OS=17.2' | xcpretty
 
     - name: Run Unit Tests
-      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=17.5' | xcpretty
+      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14,OS=17.2' | xcpretty
