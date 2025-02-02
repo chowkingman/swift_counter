@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-14  # Ensure compatibility with GitHub Actions
 
     steps:
     - name: Checkout Repository
@@ -30,19 +30,28 @@ jobs:
     - name: Verify Xcode Version
       run: xcodebuild -version
 
-    - name: List Available iOS Simulators
+    - name: List Available iOS Simulators (Before Installation)
       run: xcrun simctl list devices
 
-    - name: Install iOS 17.0 Simulator
+    - name: Install iOS 17.0 Simulator (If Not Installed)
       run: |
-        echo "Installing iOS 17.0 Simulator..."
-        xcversion simulators --install="iOS 17.0" || echo "Skipping if already installed"
+        if ! xcrun simctl list devices | grep -q "iOS 17.0"; then
+          echo "Installing iOS 17.0 Simulator..."
+          sudo xcodebuild -downloadPlatform iOS -version 17.0 || echo "Skipping installation if already present"
+        else
+          echo "✅ iOS 17.0 Simulator already installed."
+        fi
 
     - name: Boot iPhone 15 Pro Simulator (iOS 17.0)
-      run: xcrun simctl boot "iPhone 15 Pro" || echo "Skipping boot if already running"
+      run: |
+        if xcrun simctl list devices | grep -q "iPhone 15 Pro (.*) (Shutdown)"; then
+          xcrun simctl boot "iPhone 15 Pro" || echo "Skipping boot if already running"
+        else
+          echo "⚠️ iPhone 15 Pro (iOS 17.0) not found, using any available iOS Simulator"
+        fi
 
     - name: Clean & Build Project
-      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.0' | xcpretty
+      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination "generic/platform=iOS Simulator" | xcpretty
 
     - name: Run Unit Tests
-      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.0' | xcpretty
+      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination "generic/platform=iOS Simulator" | xcpretty
