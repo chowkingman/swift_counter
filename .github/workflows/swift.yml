@@ -10,14 +10,11 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14  # Ensure compatibility with GitHub Actions
+    runs-on: macos-14
 
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
-
-    - name: List Installed Xcode Versions
-      run: ls /Applications | grep Xcode
 
     - name: Set Up Xcode 16.2
       run: |
@@ -30,28 +27,25 @@ jobs:
     - name: Verify Xcode Version
       run: xcodebuild -version
 
-    - name: List Available iOS Simulators (Before Installation)
+    - name: List Available iOS Simulators
       run: xcrun simctl list devices
 
-    - name: Install iOS 17.0 Simulator (If Not Installed)
+    - name: Select an Available iOS 17.0 Simulator
+      id: select_simulator
       run: |
-        if ! xcrun simctl list devices | grep -q "iOS 17.0"; then
-          echo "Installing iOS 17.0 Simulator..."
-          sudo xcodebuild -downloadPlatform iOS -version 17.0 || echo "Skipping installation if already present"
-        else
-          echo "✅ iOS 17.0 Simulator already installed."
+        SIMULATOR_ID=$(xcrun simctl list devices available | grep -Eo '[0-9A-F\-]+.*(iOS 17.0)' | head -n 1 | awk '{print $1}')
+        if [[ -z "$SIMULATOR_ID" ]]; then
+          echo "❌ No available iOS 17.0 simulator found. Exiting..."
+          exit 1
         fi
+        echo "✅ Using simulator: $SIMULATOR_ID"
+        echo "SIMULATOR_ID=$SIMULATOR_ID" >> $GITHUB_ENV
 
-    - name: Boot iPhone 15 Pro Simulator (iOS 17.0)
-      run: |
-        if xcrun simctl list devices | grep -q "iPhone 15 Pro (.*) (Shutdown)"; then
-          xcrun simctl boot "iPhone 15 Pro" || echo "Skipping boot if already running"
-        else
-          echo "⚠️ iPhone 15 Pro (iOS 17.0) not found, using any available iOS Simulator"
-        fi
+    - name: Boot Selected iOS Simulator
+      run: xcrun simctl boot "$SIMULATOR_ID"
 
     - name: Clean & Build Project
-      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,OS=17.0,name=iPhone 15 Pro' | xcpretty
-  
+      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination "id=$SIMULATOR_ID" | xcpretty
+
     - name: Run Unit Tests
-      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,OS=17.0,name=iPhone 15 Pro' | xcpretty
+      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination "id=$SIMULATOR_ID" | xcpretty
