@@ -34,11 +34,20 @@ jobs:
     - name: List Available iOS Simulators
       run: xcrun simctl list devices
 
-    - name: Boot iPhone 15 Pro Simulator (iOS 17.2)
-      run: xcrun simctl boot "iPhone 15 Pro"
+    - name: Select an Available iOS Simulator
+      run: |
+        DEVICE_NAME=$(xcrun simctl list devices available | grep -m 1 "iPhone" | awk -F'[()]' '{print $2}')
+        if [ -z "$DEVICE_NAME" ]; then
+          echo "❌ No available iPhone simulators found!" && exit 1
+        fi
+        echo "✅ Using simulator: $DEVICE_NAME"
+        echo "SIMULATOR_NAME=$DEVICE_NAME" >> $GITHUB_ENV
+
+    - name: Boot Selected Simulator
+      run: xcrun simctl boot "$SIMULATOR_NAME"
 
     - name: Clean & Build Project
-      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2' | xcpretty
+      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination "generic/platform=iOS Simulator" | xcpretty
 
     - name: Run Unit Tests
-      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2' | xcpretty
+      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination "generic/platform=iOS Simulator" | xcpretty
