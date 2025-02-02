@@ -36,7 +36,7 @@ jobs:
       run: xcrun simctl list devices
 
     - name: Clean & Build Project
-      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5' | xcpretty
-
+      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,id=59DC2CA8-A11B-4C7D-A130-DB481DD00A0E' | xcpretty
+    
     - name: Run Unit Tests
-      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5' | xcpretty
+      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,id=59DC2CA8-A11B-4C7D-A130-DB481DD00A0E' | xcpretty
