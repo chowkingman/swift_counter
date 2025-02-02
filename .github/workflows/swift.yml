@@ -33,13 +33,12 @@ jobs:
     - name: Select an Available iOS 17.0 Simulator
       id: select_simulator
       run: |
+        # Use awk to find the iPhone 15 Pro in the iOS 17.0 section and extract its UDID
         SIMULATOR_ID=$(xcrun simctl list devices | awk '
           /-- iOS 17\.0 --/ {flag=1; next}
           /^--/ {flag=0}
           flag && /iPhone 15 Pro/ {
-            # Print the fourth field (which should be the UDID with parentheses)
             uid = $4;
-            # Remove parentheses
             gsub(/[()]/, "", uid);
             print uid;
             exit;
@@ -57,17 +56,20 @@ jobs:
         xcrun simctl boot "$SIMULATOR_ID"
         # Wait until the simulator is fully booted
         xcrun simctl bootstatus "$SIMULATOR_ID" -b
+        echo "Booted devices:"
+        xcrun simctl list devices booted
+        sleep 10  # Allow extra time if needed
 
     - name: Clean & Build Project
       run: |
         xcodebuild clean build \
           -scheme swift_counter \
           -sdk iphonesimulator \
-          -destination "id=$SIMULATOR_ID" | xcpretty
+          -destination 'platform=iOS Simulator,OS=17.0,name=iPhone 15 Pro' | xcpretty
 
     - name: Run Unit Tests
       run: |
         xcodebuild test \
           -scheme swift_counter \
           -sdk iphonesimulator \
-          -destination "id=$SIMULATOR_ID" | xcpretty
+          -destination 'platform=iOS Simulator,OS=17.0,name=iPhone 15 Pro' | xcpretty
