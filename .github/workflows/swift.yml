@@ -12,13 +12,28 @@ on:
 jobs:
   build:
 
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Xcode
-      run: sudo xcode-select -s /Applications/Xcode_15.4.app
-    - name: Build
-      run: xcodebuild -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=17.5' build
-    - name: Run tests
-      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=17.5'
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: List Installed Xcode Versions (Debugging)
+      run: ls /Applications | grep Xcode
+      
+    - name: Set Up Xcode 15.4 (If Available)
+      run: |
+        if [ -d "/Applications/Xcode_15.4.app" ]; then
+          sudo xcode-select -s /Applications/Xcode_15.4.app
+        else
+          echo "⚠️ Xcode 15.4 not found, using default version."
+        fi
+
+    - name: Verify Xcode Version
+      run: xcodebuild -version
+
+    - name: Clean & Build Project
+      run: xcodebuild clean build -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=17.5' | xcpretty
+
+    - name: Run Unit Tests
+      run: xcodebuild test -scheme swift_counter -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=17.5' | xcpretty
